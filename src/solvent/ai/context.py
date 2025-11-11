@@ -2,12 +2,18 @@
 
 import textwrap
 
+from solvent.rules.context import ContextRule, get_context_for_file
 
-def build_pre_commit_review_prompt(file_contents: dict[str, str]) -> str:
+
+def build_pre_commit_review_prompt(
+    file_contents: dict[str, str],
+    context_rules: list[ContextRule] | None = None,
+) -> str:
     """Build the prompt for reviewing staged files in a pre-commit hook.
 
     Args:
         file_contents: Dictionary mapping file paths to their contents.
+        context_rules: Optional list of ContextRule objects for file-specific context.
 
     Returns:
         Formatted prompt string with context and file contents.
@@ -18,6 +24,14 @@ def build_pre_commit_review_prompt(file_contents: dict[str, str]) -> str:
 
     for file_path, content in file_contents.items():
         prompt += f"File: {file_path}\n"
+
+        # Add file-specific context if available
+        if context_rules:
+            file_context = get_context_for_file(file_path, context_rules)
+            if file_context:
+                prompt += f"CONTEXT FOR THIS FILE: {file_context}\n"
+                prompt += "-" * 80 + "\n"
+
         prompt += "-" * 80 + "\n"
         prompt += content
         prompt += "\n" + "-" * 80 + "\n\n"

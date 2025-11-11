@@ -6,6 +6,7 @@ import sys
 from solvent.config import setup_logging
 from solvent.config.settings import get_settings
 from solvent.hook import run_pre_commit_review
+from solvent.hook.evaluator import strip_status_block
 
 
 def main() -> int:
@@ -22,8 +23,9 @@ def main() -> int:
     # Run pre-commit review
     result = run_pre_commit_review()
 
-    # Print feedback
-    print(result.feedback)
+    # Print feedback (with status block removed for cleaner output)
+    cleaned_feedback = strip_status_block(result.feedback)
+    print(cleaned_feedback)
 
     # Return exit code based on result
     return 0 if result.passed else 1

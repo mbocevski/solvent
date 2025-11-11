@@ -1,6 +1,7 @@
 """Pre-commit hook orchestration for reviewing staged files."""
 
 import logging
+from pathlib import Path
 
 from git import Repo
 
@@ -8,6 +9,7 @@ from solvent.ai import GeminiClient
 from solvent.git import get_staged_files, read_staged_files
 from solvent.hook.evaluator import should_block_commit
 from solvent.models.hook import HookResult
+from solvent.rules import filter_ignored_files, load_context_rules, load_ignore_patterns
 
 logger = logging.getLogger(__name__)
 
@@ -41,12 +43,28 @@ def run_pre_commit_review(repo_path: str | None = None) -> HookResult:
             passed=True, feedback="No staged files to review. Pre-commit check passed."
         )
 
-    logger.info(
-        f"Reviewing {len(staged_files)} staged file(s): {', '.join(staged_files)}"
+    # Load and apply ignore patterns
+    repo_root = Path(repo.working_dir)
+    ignore_spec = load_ignore_patterns(repo_root)
+    filtered_files = filter_ignored_files(staged_files, ignore_spec, repo_root)
+
+    if not filtered_files:
+        logger.info("All staged files are ignored by .solventignore patterns")
+        return HookResult(
+            passed=True,
+            feedback="All staged files are ignored. Pre-commit check passed.",
+        )
+
+    logger.debug(
+        f"Reviewing {len(filtered_files)} staged file(s) "
+        f"(filtered from {len(staged_files)} total): {', '.join(filtered_files)}"
     )
 
+    # Load context rules
+    context_rules = load_context_rules(repo_root)
+
     # Get file contents
-    file_contents = read_staged_files(repo, staged_files)
+    file_contents = read_staged_files(repo, filtered_files)
 
     if not file_contents:
         logger.warning("No file contents could be read")
@@ -58,12 +76,35 @@ def run_pre_commit_review(repo_path: str | None = None) -> HookResult:
     # Review with AI
     try:
         client = GeminiClient()
-        feedback = client.review_staged_files(file_contents)
+        feedback = client.review_staged_files(file_contents, context_rules)
     except Exception as e:
+        error_str = str(e)
+        # Provide user-friendly error messages
+        if "503" in error_str or "UNAVAILABLE" in error_str:
+            user_message = (
+                "AI review service is temporarily unavailable. "
+                "Please try again in a moment."
+            )
+        elif "429" in error_str or "RATE_LIMIT" in error_str or "QUOTA" in error_str:
+            user_message = (
+                "AI review service rate limit exceeded. Please try again in a moment."
+            )
+        elif "401" in error_str or "UNAUTHENTICATED" in error_str:
+            user_message = (
+                "AI review authentication failed. "
+                "Please check your API key configuration."
+            )
+        elif "403" in error_str or "PERMISSION_DENIED" in error_str:
+            user_message = (
+                "AI review permission denied. Please check your API key permissions."
+            )
+        else:
+            user_message = f"AI review service error: {error_str}"
+
         logger.error(f"Error during AI review: {e}")
         return HookResult(
             passed=False,
-            feedback=f"Error during AI review: {e}. Pre-commit check failed.",
+            feedback=f"{user_message} Pre-commit check failed.",
         )
 
     # Determine if hook should pass or fail

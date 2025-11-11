@@ -5,7 +5,9 @@ import logging
 from google.genai import Client
 
 from solvent.ai.context import build_pre_commit_review_prompt
+from solvent.ai.retry import retry_with_backoff
 from solvent.config import get_settings
+from solvent.rules.context import ContextRule
 
 logger = logging.getLogger(__name__)
 
@@ -41,11 +43,17 @@ class GeminiClient:
             f"temperature: {self.temperature}"
         )
 
-    def review_staged_files(self, file_contents: dict[str, str]) -> str:
+    def review_staged_files(
+        self,
+        file_contents: dict[str, str],
+        context_rules: list[ContextRule] | None = None,
+    ) -> str:
         """Review staged files using Gemini.
 
         Args:
             file_contents: Dictionary mapping file paths to their contents.
+            context_rules: Optional list of ContextRule objects for file-specific
+                context.
 
         Returns:
             AI-generated review feedback as a string.
@@ -54,7 +62,7 @@ class GeminiClient:
             ValueError: If the API returns None feedback.
             Exception: For other API errors.
         """
-        prompt = build_pre_commit_review_prompt(file_contents)
+        prompt = build_pre_commit_review_prompt(file_contents, context_rules)
 
         def _validate_feedback(fb: str | None) -> str:
             """Validate that feedback is not None.
@@ -74,7 +82,16 @@ class GeminiClient:
                 raise ValueError(error_msg)
             return fb
 
-        try:
+        def _call_api() -> str:
+            """Make the API call (used for retry logic).
+
+            Returns:
+                AI-generated feedback string.
+
+            Raises:
+                ValueError: If the API returns None feedback.
+                Exception: For other API errors.
+            """
             logger.debug("Sending staged files review request to Gemini")
             response = self.client.models.generate_content(
                 model=self.model_name,
@@ -83,10 +100,16 @@ class GeminiClient:
             )
             feedback = _validate_feedback(response.text)
             logger.debug("Received feedback from Gemini")
+            return feedback
+
+        try:
+            # Retry with exponential backoff for transient errors
+            return retry_with_backoff(
+                _call_api, operation_name="Gemini API review request"
+            )
         except ValueError:
+            # Don't retry validation errors
             raise
         except Exception:
-            logger.exception("Error calling Gemini API")
+            logger.exception("Error calling Gemini API after retries")
             raise
-        else:
-            return feedback

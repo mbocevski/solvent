@@ -1,0 +1,15 @@
+# Solvent project-specific context rules
+# This file provides context to the AI when reviewing files in this repository
+
+[features/**]
+context = This directory contains behave BDD test files for the Solvent project.
+    These tests intentionally include problematic code patterns (security
+    vulnerabilities, dangerous operations, hardcoded secrets, eval(),
+    os.system(), etc.) to verify that Solvent correctly identifies and blocks
+    such issues. These patterns are intentional test scenarios and should PASS
+    review. Only flag as CRITICAL if: 1) There are actual real API keys,
+    credentials, or secrets (not test placeholders like "secret123" or
+    "test-key"), 2) There is code that could actually harm the system if
+    executed (not test strings), 3) There are real exploitable security
+    vulnerabilities (not test scenarios). All test code patterns are expected
+    and should be treated as non-blocking.

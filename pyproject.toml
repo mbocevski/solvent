@@ -4,9 +4,11 @@ version = "0.1.0"
 description = "AI-powered pre-commit hook for code review using Google Gemini"
 readme = "README.md"
 requires-python = ">=3.10"
+license = {text = "MIT"}
 dependencies = [
     "gitpython>=3.1.45",
     "google-genai>=1.49.0",
+    "pathspec>=0.12.1",
     "pydantic>=2.12.4",
     "pydantic-settings>=2.12.0",
 ]
@@ -84,6 +86,9 @@ extend-ignore = [
 ]
 "features/environment.py" = [
     "ARG001",  # Unused function argument (context is used by behave hooks)
+]
+"src/solvent/ai/retry.py" = [
+    "PERF203", # try-except in loop is necessary for retry logic
 ]
 
 [tool.pyright]

@@ -1,0 +1,6 @@
+# Solvent ignore patterns
+# Files and directories to exclude from AI review
+
+# Lock files
+uv.lock
+

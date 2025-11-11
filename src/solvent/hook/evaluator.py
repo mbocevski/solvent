@@ -55,6 +55,18 @@ def should_block_commit(feedback: str) -> bool:
     return _should_block_commit_keyword_fallback(feedback)
 
 
+def strip_status_block(feedback: str) -> str:
+    """Remove the machine-readable status block from feedback for user display.
+
+    Args:
+        feedback: AI-generated feedback that may contain a status block.
+
+    Returns:
+        Feedback with status block removed.
+    """
+    return STATUS_BLOCK_PATTERN.sub("", feedback).strip()
+
+
 def _should_block_commit_keyword_fallback(feedback: str) -> bool:
     """Fallback keyword-based detection for determining if commit should be blocked.
 
