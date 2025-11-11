@@ -6,7 +6,7 @@ from pathlib import Path
 from git import Repo
 
 from solvent.ai import GeminiClient
-from solvent.git import get_staged_files, read_staged_files
+from solvent.git import get_staged_file_info, get_staged_files
 from solvent.hook.evaluator import should_block_commit
 from solvent.models.hook import HookResult
 from solvent.rules import filter_ignored_files, load_context_rules, load_ignore_patterns
@@ -63,10 +63,10 @@ def run_pre_commit_review(repo_path: str | None = None) -> HookResult:
     # Load context rules
     context_rules = load_context_rules(repo_root)
 
-    # Get file contents (files that are too large will be skipped)
-    file_contents = read_staged_files(repo, filtered_files)
+    # Get file info with diffs (files that are too large will be skipped)
+    file_info_dict = get_staged_file_info(repo, filtered_files)
 
-    if not file_contents:
+    if not file_info_dict:
         # Check if all files were skipped due to size
         # If we had filtered files but none were readable, they might all be too large
         logger.info(
@@ -83,7 +83,7 @@ def run_pre_commit_review(repo_path: str | None = None) -> HookResult:
     # Review with AI
     try:
         client = GeminiClient()
-        feedback = client.review_staged_files(file_contents, context_rules)
+        feedback = client.review_staged_files(file_info_dict, context_rules)
     except Exception as e:
         error_str = str(e)
         # Provide user-friendly error messages

@@ -7,6 +7,7 @@ from google.genai import Client
 from solvent.ai.context import build_pre_commit_review_prompt
 from solvent.ai.retry import retry_with_backoff
 from solvent.config import get_settings
+from solvent.models.file_info import FileInfo
 from solvent.rules.context import ContextRule
 
 logger = logging.getLogger(__name__)
@@ -45,13 +46,14 @@ class GeminiClient:
 
     def review_staged_files(
         self,
-        file_contents: dict[str, str],
+        file_info_dict: dict[str, FileInfo],
         context_rules: list[ContextRule] | None = None,
     ) -> str:
         """Review staged files using Gemini.
 
         Args:
-            file_contents: Dictionary mapping file paths to their contents.
+            file_info_dict: Dictionary mapping file paths to FileInfo objects
+                containing diff, original content, and new content.
             context_rules: Optional list of ContextRule objects for file-specific
                 context.
 
@@ -62,7 +64,7 @@ class GeminiClient:
             ValueError: If the API returns None feedback.
             Exception: For other API errors.
         """
-        prompt = build_pre_commit_review_prompt(file_contents, context_rules)
+        prompt = build_pre_commit_review_prompt(file_info_dict, context_rules)
 
         def _validate_feedback(fb: str | None) -> str:
             """Validate that feedback is not None.

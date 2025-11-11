@@ -29,7 +29,7 @@ jobs:
         run: uv run ruff format --check
 
       - name: Run pyright
-        run: uv run pyright src/solvent
+        run: uv run pyright
 
   test:
     name: Test
