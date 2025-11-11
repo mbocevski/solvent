@@ -1,0 +1,9 @@
+- id: solvent
+  name: Solvent AI Code Review
+  description: AI-powered pre-commit hook for code review using Google Gemini
+  entry: solvent
+  language: python
+  types: [text]
+  require_serial: false
+  pass_filenames: false
+  always_run: true

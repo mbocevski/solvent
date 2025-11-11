@@ -218,59 +218,46 @@ else:
 ### Integration with pre-commit Framework
 
 Solvent integrates seamlessly with the [pre-commit](https://pre-commit.com/)
-framework. Choose one of the following options:
-
-#### Option 1: Local Hook (Recommended for Development)
-
-First, install Solvent in your project:
-
-```bash
-# Using pip
-pip install solvent
-
-# Or using uv
-uv add solvent
-```
-
-Then add to your `.pre-commit-config.yaml`:
-
-```yaml
-repos:
-  - repo: local
-    hooks:
-      - id: solvent
-        name: Solvent AI Code Review
-        entry: solvent
-        language: system
-        pass_filenames: false
-        require_serial: true
-```
-
-If using `uv` without installing globally:
-
-```yaml
-repos:
-  - repo: local
-    hooks:
-      - id: solvent
-        name: Solvent AI Code Review
-        entry: uv run solvent
-        language: system
-        pass_filenames: false
-        require_serial: true
-```
-
-#### Option 2: Repository Hook (When Published)
-
-Once Solvent is published to a git repository, you can use it as a repository
-hook:
+framework. Add the following to your `.pre-commit-config.yaml`:
 
 ```yaml
 repos:
   - repo: https://github.com/mbocevski/solvent
-    rev: v0.1.0 # Use a specific version or tag
+    rev: v0.1.0 # Use a specific version tag
     hooks:
       - id: solvent
+```
+
+Then install the hooks:
+
+```bash
+pre-commit install
+```
+
+The hook will automatically install Solvent and its dependencies when first run.
+
+#### Alternative: Local Hook (For Development)
+
+If you're developing Solvent or want to use a local installation:
+
+```bash
+# Install Solvent first
+pip install solvent
+# Or: uv add solvent
+```
+
+Then use a local hook in `.pre-commit-config.yaml`:
+
+```yaml
+repos:
+  - repo: local
+    hooks:
+      - id: solvent
+        name: Solvent AI Code Review
+        entry: solvent # or: uv run solvent
+        language: system
+        pass_filenames: false
+        always_run: true
 ```
 
 > **Important**: Make sure to set the `SOLVENT_GEMINI_API_KEY` environment
