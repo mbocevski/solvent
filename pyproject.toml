@@ -1,0 +1,113 @@
+[project]
+name = "solvent"
+version = "0.1.0"
+description = "AI-powered pre-commit hook for code review using Google Gemini"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "gitpython>=3.1.45",
+    "google-genai>=1.49.0",
+    "pydantic>=2.12.4",
+    "pydantic-settings>=2.12.0",
+]
+[project.scripts]
+solvent = "solvent.main:main"
+
+[dependency-groups]
+dev = [
+    "behave>=1.3.3",
+    "pre-commit>=4.4.0",
+    "pyright>=1.1.407",
+    "ruff>=0.14.4",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.5,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.uv_build]
+packages = ["src/solvent"]
+
+[tool.ruff]
+line-length = 88
+indent-width = 4
+
+[tool.ruff.lint]
+preview = true
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "I",     # isort
+    "B",     # flake8-bugbear
+    "C4",    # flake8-comprehensions
+    "N",     # PEP8 naming convetions
+    "PL",    # pylint
+    "UP",    # pyupgrade
+    "FURB",  # refurb
+    "RUF",   # ruff custom rules
+    "PERF",  # performance rules
+    "PD",    # pandas related rules
+    "NPY",   # numpy related rules (mostly warning deprecations)
+    "ARG",   # Argument related rules
+    "TID",   # Tidy imports, namely prefer absolute import
+    "SIM",   # Simplification
+    "RET",   # Warns about implicit and missing returns
+    "Q",     # Quotes
+    "PT",    # Pytest
+    "PYI",   # flake8-pyi
+    "PIE",   # flake8-pie
+    "LOG",   # flake8-logging
+    "DTZ",   # Datetime
+    "A",     # Shadowing
+    "FBT",   # Keyword boolean arguments
+    "ASYNC", # Async
+    "TRY",   # Consistent error handling
+    "DOC",   # Docs
+    "G",     # flake8-logging-format (would be nice to have)
+]
+extend-ignore = [
+    "DOC502",  # Raised exception not explicitly raised
+    "DOC201",  # return is not documented in docstring
+    "G004",    # f-string in log statement (it makes sense not to do but annoying)
+    "TRY003",  # Avoid specifying long messages for an exception
+    "TRY400",  # Use logging.exception - we use error for user-facing errors
+    "PLR2004", # Don't use magic numbers
+]
+
+# Behave-specific ignores for step definitions and environment hooks
+[tool.ruff.lint.per-file-ignores]
+"features/steps/*.py" = [
+    "ARG001",  # Unused function argument (context is used by behave decorators)
+    "PLR0913", # Too many arguments (step functions can have many params from feature files)
+    "RET504",  # Unnecessary return statement (step functions don't need explicit returns)
+]
+"features/environment.py" = [
+    "ARG001",  # Unused function argument (context is used by behave hooks)
+]
+
+[tool.pyright]
+include = ["src/solvent", "features"]
+# Note: reportCallIssue is disabled globally due to behave decorators (@given, @when, @then)
+# in features/steps/*.py which work at runtime but pyright doesn't recognize as callable.
+# This is a limitation of behave's type stubs, not our code.
+#
+# Trade-off: We disable this globally rather than per-file because:
+# 1. Pyright doesn't support per-file-ignores in pyproject.toml (unlike ruff)
+# 2. Using a separate pyrightconfig.json would add complexity
+# 3. The behave step files are the only place where this issue occurs
+#
+# Future improvement: If behave adds proper type hints or pyright adds per-file config
+# support in pyproject.toml, we can make this more targeted. For now, this is the
+# most practical solution that maintains type checking for the rest of the codebase.
+reportCallIssue = false
+
+[tool.behave]
+# Behave configuration
+# https://behave.readthedocs.io/en/latest/behave.html#configuration-files
+format = ["pretty"]
+show_timings = true
+show_skipped = true
+color = true
+logging_level = "INFO"
+paths = ["features"]
