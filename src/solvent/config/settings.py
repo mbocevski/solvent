@@ -35,6 +35,12 @@ class Settings(BaseSettings):
         description="Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
     )
 
+    # File size limits
+    max_file_size: int = Field(
+        default=1024 * 1024,  # 1MB in bytes
+        description="Maximum file size in bytes to review (default: 1MB)",
+    )
+
 
 _settings: Settings | None = None
 

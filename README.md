@@ -19,19 +19,44 @@ improvement.
   `.solventignore` (gitignore-style patterns)
 - **File-Specific Context**: Provide custom AI context per file/directory using
   `.solventrules`
+- **File Size Limits**: Automatically skips files larger than the configured
+  limit (default: 1MB) to prevent API issues
 - **BDD Testing**: Comprehensive test coverage using behave
 
 ## Installation
+
+### From PyPI (Recommended)
+
+Once published, install Solvent from PyPI:
+
+```bash
+pip install solvent
+```
+
+Or using `uv`:
+
+```bash
+uv pip install solvent
+```
+
+### From Source
 
 This project uses [uv](https://github.com/astral-sh/uv) for fast and reliable
 dependency management.
 
 ```bash
+# Clone the repository
+git clone https://github.com/mbocevski/solvent.git
+cd solvent
+
 # Install dependencies
 uv sync
 
 # Install with dev dependencies (for development)
 uv sync --group dev
+
+# Install the package in development mode
+uv pip install -e .
 ```
 
 ## Configuration
@@ -53,6 +78,7 @@ export SOLVENT_GEMINI_API_KEY="your-api-key-here"
 export SOLVENT_GEMINI_MODEL="gemini-2.5-flash"  # Default: gemini-2.5-flash
 export SOLVENT_GEMINI_TEMPERATURE="0.7"         # Default: 0.7 (range: 0.0-2.0)
 export SOLVENT_LOG_LEVEL="INFO"                 # Default: INFO
+export SOLVENT_MAX_FILE_SIZE="1048576"          # Default: 1MB (in bytes)
 ```
 
 > **Note**: Get your Gemini API key from
@@ -241,7 +267,7 @@ hook:
 
 ```yaml
 repos:
-  - repo: https://github.com/yourusername/solvent
+  - repo: https://github.com/mbocevski/solvent
     rev: v0.1.0 # Use a specific version or tag
     hooks:
       - id: solvent
@@ -259,16 +285,19 @@ Solvent follows a streamlined workflow to review your code:
    commit
 2. **Applies Ignore Patterns**: Filters out files matching `.solventignore`
    patterns (if present)
-3. **Loads Context Rules**: Loads file-specific context from `.solventrules` (if
+3. **Checks File Sizes**: Skips files larger than the configured size limit
+   (default: 1MB) to prevent API token limits and timeouts
+4. **Loads Context Rules**: Loads file-specific context from `.solventrules` (if
    present)
-4. **Reads File Contents**: Reads the contents of non-ignored staged files
-   (skips binary files and files with encoding errors)
-5. **AI Review**: Sends files to Google Gemini for review, including
+5. **Reads File Contents**: Reads the contents of non-ignored, size-appropriate
+   staged files (skips binary files, files with encoding errors, and oversized
+   files)
+6. **AI Review**: Sends files to Google Gemini for review, including
    file-specific context where applicable
-6. **Determines Pass/Fail**: Analyzes AI feedback for critical issues using:
+7. **Determines Pass/Fail**: Analyzes AI feedback for critical issues using:
    - Machine-readable status block (preferred)
    - Keyword-based fallback detection
-7. **Returns Result**: Returns `HookResult` with pass/fail status and detailed
+8. **Returns Result**: Returns `HookResult` with pass/fail status and detailed
    feedback
 
 ### Critical Issues That Block Commits
@@ -498,6 +527,125 @@ uv run ruff check src/solvent && uv run ruff format && uv run pyright src/solven
   - `GitPython`: Git repository operations
   - `pydantic` / `pydantic-settings`: Configuration management
   - `pathspec`: Pattern matching for ignore/rules files
+
+## Troubleshooting
+
+### API Key Issues
+
+**Error: "AI review authentication failed" or "API key not valid"**
+
+- Ensure `SOLVENT_GEMINI_API_KEY` is set in your environment
+- Verify the API key is correct and not expired
+- Check that the API key has the necessary permissions for the Gemini API
+- Get a new API key from
+  [Google AI Studio](https://makersuite.google.com/app/apikey)
+
+**Error: "AI review permission denied"**
+
+- Your API key may not have the required permissions
+- Check your Google Cloud project settings
+- Ensure the Gemini API is enabled in your project
+
+### Rate Limiting
+
+**Error: "AI review service rate limit exceeded"**
+
+- The Gemini API has rate limits based on your usage tier
+- Wait a few moments and try again
+- Consider upgrading your API quota if you frequently hit limits
+- The hook automatically retries with exponential backoff (up to 3 attempts)
+
+### Service Unavailable
+
+**Error: "AI review service is temporarily unavailable"**
+
+- The Gemini API service may be experiencing downtime
+- The hook automatically retries transient errors (503, 502, 504)
+- Wait a few moments and try again
+- Check [Google Cloud Status](https://status.cloud.google.com/) for service
+  issues
+
+### No Files to Review
+
+**Message: "No staged files to review"**
+
+- Ensure you have files staged with `git add`
+- Run `git status` to verify staged files
+- The hook only reviews files that are staged for commit
+
+**Message: "All staged files are ignored"**
+
+- Check your `.solventignore` file for patterns that might be too broad
+- Verify the patterns match what you expect
+- Files matching `.solventignore` patterns are excluded from review
+
+**Message: "All staged files were skipped (too large, binary, or unreadable)"**
+
+- Files larger than the configured size limit (default: 1MB) are skipped
+- Binary files and files with encoding errors are skipped
+- Adjust `SOLVENT_MAX_FILE_SIZE` if you need to review larger files
+- Note: Very large files may hit API token limits
+
+### Git Repository Issues
+
+**Error: "Error accessing git repository"**
+
+- Ensure you're running `solvent` from within a git repository
+- Run `git status` to verify you're in a valid repository
+- Check that `.git` directory exists and is accessible
+
+### Configuration Issues
+
+**Settings not being applied**
+
+- Environment variables must use the `SOLVENT_` prefix
+- Variable names are case-insensitive
+- Restart your terminal/shell after setting environment variables
+- Use `echo $SOLVENT_GEMINI_API_KEY` to verify the variable is set
+
+**Log level not changing**
+
+- Ensure `SOLVENT_LOG_LEVEL` is set to one of: `DEBUG`, `INFO`, `WARNING`,
+  `ERROR`, `CRITICAL`
+- Check that the variable is exported: `export SOLVENT_LOG_LEVEL=DEBUG`
+- Run with `SOLVENT_LOG_LEVEL=DEBUG uv run solvent` to test
+
+### File Reading Issues
+
+**Files are being skipped unexpectedly**
+
+- Check file encoding (only UTF-8 text files are reviewed)
+- Verify file permissions (must be readable)
+- Ensure files exist and are not symlinks to non-existent files
+- Binary files are automatically skipped
+
+### Getting More Information
+
+**Enable debug logging:**
+
+```bash
+export SOLVENT_LOG_LEVEL=DEBUG
+uv run solvent
+```
+
+This will show detailed information about:
+
+- Which files are being reviewed
+- Which files are being skipped and why
+- API request/response details
+- Retry attempts
+
+**Check version:**
+
+```bash
+uv run solvent --version
+```
+
+**Get help:**
+
+```bash
+uv run solvent --help
+```
 
 ## License
 
