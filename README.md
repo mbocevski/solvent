@@ -226,6 +226,7 @@ repos:
     rev: v0.1.0 # Use a specific version tag
     hooks:
       - id: solvent
+        verbose: true # Always show output to see the AI response when status Passed
 ```
 
 Then install the hooks:
@@ -235,6 +236,10 @@ pre-commit install
 ```
 
 The hook will automatically install Solvent and its dependencies when first run.
+
+> **Note**: By default, pre-commit only shows output from hooks that fail. Add
+> `verbose: true` to the hook configuration to always see AI feedback, even when
+> the review passes. This is useful for seeing suggestions and improvements.
 
 #### Alternative: Local Hook (For Development)
 
