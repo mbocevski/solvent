@@ -5,6 +5,8 @@ from pathlib import Path
 
 from git import Repo
 
+from solvent.config.settings import get_settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -57,9 +59,9 @@ def get_staged_files(repo: Repo) -> list[str]:
 def read_staged_files(repo: Repo, file_paths: list[str]) -> dict[str, str]:
     """Read contents of staged files.
 
-    Files that cannot be read (binary, encoding errors, etc.) are skipped and
-    logged, but not included in the returned dictionary to avoid confusing
-    the AI with error messages that might be interpreted as code.
+    Files that cannot be read (binary, encoding errors, too large, etc.) are
+    skipped and logged, but not included in the returned dictionary to avoid
+    confusing the AI with error messages that might be interpreted as code.
 
     Args:
         repo: Git repository.
@@ -67,11 +69,13 @@ def read_staged_files(repo: Repo, file_paths: list[str]) -> dict[str, str]:
 
     Returns:
         Dictionary mapping file paths to their contents. Only includes files
-        that were successfully read.
+        that were successfully read and are within size limits.
     """
     file_contents = {}
     repo_root = Path(repo.working_dir)
     skipped_files = []
+    settings = get_settings()
+    max_size = settings.max_file_size
 
     for file_path in file_paths:
         full_path = repo_root / file_path
@@ -84,6 +88,20 @@ def read_staged_files(repo: Repo, file_paths: list[str]) -> dict[str, str]:
             if not full_path.is_file():
                 logger.debug(f"Skipping non-file: {file_path}")
                 skipped_files.append((file_path, "Not a file"))
+                continue
+
+            # Check file size before reading
+            file_size = full_path.stat().st_size
+            if file_size > max_size:
+                size_mb = file_size / (1024 * 1024)
+                max_mb = max_size / (1024 * 1024)
+                logger.info(
+                    f"File {file_path} is too large "
+                    f"({size_mb:.2f}MB > {max_mb:.2f}MB), skipping from review"
+                )
+                skipped_files.append(
+                    (file_path, f"File too large ({size_mb:.2f}MB > {max_mb:.2f}MB)")
+                )
                 continue
 
             content = full_path.read_text(encoding="utf-8")

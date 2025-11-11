@@ -63,14 +63,21 @@ def run_pre_commit_review(repo_path: str | None = None) -> HookResult:
     # Load context rules
     context_rules = load_context_rules(repo_root)
 
-    # Get file contents
+    # Get file contents (files that are too large will be skipped)
     file_contents = read_staged_files(repo, filtered_files)
 
     if not file_contents:
-        logger.warning("No file contents could be read")
+        # Check if all files were skipped due to size
+        # If we had filtered files but none were readable, they might all be too large
+        logger.info(
+            "No file contents could be read. All files may be too large or unreadable."
+        )
         return HookResult(
-            passed=False,
-            feedback="Unable to read staged files. Pre-commit check failed.",
+            passed=True,
+            feedback=(
+                "All staged files were skipped (too large, binary, or unreadable). "
+                "Pre-commit check passed."
+            ),
         )
 
     # Review with AI
