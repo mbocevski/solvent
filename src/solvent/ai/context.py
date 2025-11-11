@@ -2,28 +2,30 @@
 
 import textwrap
 
+from solvent.models.file_info import FileInfo
 from solvent.rules.context import ContextRule, get_context_for_file
 
 
-def build_pre_commit_review_prompt(
-    file_contents: dict[str, str],
+def build_pre_commit_review_prompt(  # noqa: PLR0912
+    file_info_dict: dict[str, FileInfo],
     context_rules: list[ContextRule] | None = None,
 ) -> str:
     """Build the prompt for reviewing staged files in a pre-commit hook.
 
     Args:
-        file_contents: Dictionary mapping file paths to their contents.
+        file_info_dict: Dictionary mapping file paths to FileInfo objects containing
+            diff, original content, and new content.
         context_rules: Optional list of ContextRule objects for file-specific context.
 
     Returns:
-        Formatted prompt string with context and file contents.
+        Formatted prompt string with context, diffs, and file contents.
     """
     prompt = _get_pre_commit_context()
 
     prompt += "STAGED FILES TO REVIEW:\n" + "=" * 80 + "\n\n"
 
-    for file_path, content in file_contents.items():
-        prompt += f"File: {file_path}\n"
+    for file_path, file_info in file_info_dict.items():
+        prompt += f"File: {file_path} ({file_info.file_type})\n"
 
         # Add file-specific context if available
         if context_rules:
@@ -32,9 +34,50 @@ def build_pre_commit_review_prompt(
                 prompt += f"CONTEXT FOR THIS FILE: {file_context}\n"
                 prompt += "-" * 80 + "\n"
 
-        prompt += "-" * 80 + "\n"
-        prompt += content
-        prompt += "\n" + "-" * 80 + "\n\n"
+        # For modified files, show diff and original
+        if file_info.file_type == "modified":
+            prompt += "\nCHANGES (diff):\n"
+            prompt += "-" * 80 + "\n"
+            if file_info.diff:
+                prompt += file_info.diff
+            else:
+                prompt += "[Unable to generate diff, showing full file]\n"
+            prompt += "\n" + "-" * 80 + "\n"
+
+            prompt += "\nORIGINAL FILE (from HEAD, for context):\n"
+            prompt += "-" * 80 + "\n"
+            if file_info.original_content:
+                prompt += file_info.original_content
+            else:
+                prompt += "[Original file not available]\n"
+            prompt += "\n" + "-" * 80 + "\n"
+
+        # For new files, show full content
+        elif file_info.file_type == "new":
+            prompt += "\nNEW FILE CONTENT:\n"
+            prompt += "-" * 80 + "\n"
+            if file_info.new_content:
+                prompt += file_info.new_content
+            else:
+                prompt += "[File content not available]\n"
+            prompt += "\n" + "-" * 80 + "\n"
+
+        # For deleted files, show diff
+        elif file_info.file_type == "deleted":
+            prompt += "\nDELETION (diff showing what was removed):\n"
+            prompt += "-" * 80 + "\n"
+            if file_info.diff:
+                prompt += file_info.diff
+            else:
+                prompt += "[Diff not available]\n"
+            if file_info.original_content:
+                prompt += "\nORIGINAL FILE (being deleted):\n"
+                prompt += "-" * 80 + "\n"
+                prompt += file_info.original_content
+                prompt += "\n" + "-" * 80 + "\n"
+            prompt += "\n" + "-" * 80 + "\n"
+
+        prompt += "\n"
 
     prompt += _get_review_format_instructions()
 

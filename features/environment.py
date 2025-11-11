@@ -1,6 +1,7 @@
 """Behave environment configuration for setup and teardown hooks."""
 
 import contextlib
+import os
 import shutil
 from unittest.mock import MagicMock, patch
 
@@ -30,11 +31,11 @@ def before_feature(context, feature):
         context.gemini_patcher = patch("solvent.hook.orchestrator.GeminiClient")
         context.mock_gemini_client_class = context.gemini_patcher.start()
 
-        def mock_review_staged_files(file_contents, context_rules=None):
+        def mock_review_staged_files(file_info_dict, context_rules=None):
             """Mock implementation of review_staged_files."""
-            # Use file contents to determine appropriate mock response
-            # We don't need scenario name since file contents are sufficient
-            return get_mock_response_for_scenario("", file_contents)
+            # Use file info to determine appropriate mock response
+            # We don't need scenario name since file info is sufficient
+            return get_mock_response_for_scenario("", file_info_dict)
 
         # Create a mock instance
         mock_instance = MagicMock()
@@ -63,6 +64,13 @@ def after_feature(context, feature):
 
 def before_scenario(context, scenario):
     """Run before each scenario."""
+    # Set required environment variables for tests
+    # Only set dummy API key if it's not already set
+    # (for integration/e2e tests that need real key from environment)
+    if "SOLVENT_GEMINI_API_KEY" not in os.environ:
+        # Use a dummy API key since we're mocking the API calls
+        os.environ["SOLVENT_GEMINI_API_KEY"] = "test-api-key-for-mocked-tests"
+
     # Initialize scenario-specific context
     context.git_repo = None
     context.commits = []

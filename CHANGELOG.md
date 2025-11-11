@@ -18,6 +18,13 @@ Initial release of Solvent.
   using Google Gemini before commits
 - **Google Gemini Integration**: Seamless integration with Google Gemini API for
   intelligent code review
+- **Diff-Based Review**: Efficient review system that sends git diffs and
+  original file content to the AI, focusing on what changed rather than entire
+  files. This significantly reduces API token usage and provides better context
+  for code reviews:
+  - Modified files: Shows diff of changes + original file for context
+  - New files: Shows full file content
+  - Deleted files: Shows diff of what was removed + original file
 - **Configurable Ignore Patterns**: Support for `.solventignore` file with
   gitignore-style patterns to exclude files from review
 - **File-Specific Context Rules**: Support for `.solventrules` file to provide

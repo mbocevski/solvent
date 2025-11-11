@@ -2,12 +2,14 @@
 
 import os
 
+from solvent.models.file_info import FileInfo
+
 # Mock responses that match the expected format with status blocks
 
 
-def _build_mock_response_pass(file_contents: dict[str, str]) -> str:
+def _build_mock_response_pass(file_info_dict: dict[str, FileInfo]) -> str:
     """Build a PASS mock response matching real Gemini API format."""
-    file_names = ", ".join([os.path.basename(f) for f in file_contents])
+    file_names = ", ".join([os.path.basename(f) for f in file_info_dict])
     return f"""---BEGIN STATUS---
 STATUS: PASS
 CRITICAL_ISSUES_COUNT: 0
@@ -131,19 +133,27 @@ The test code looks appropriate for its purpose. No critical issues found.
 
 
 def get_mock_response_for_scenario(
-    scenario_name: str, file_contents: dict[str, str]
+    scenario_name: str, file_info_dict: dict[str, FileInfo]
 ) -> str:
-    """Get appropriate mock response based on scenario and file contents.
+    """Get appropriate mock response based on scenario and file info.
 
     Args:
         scenario_name: Name of the behave scenario.
-        file_contents: Dictionary of file paths to contents (for context).
+        file_info_dict: Dictionary of file paths to FileInfo objects (for context).
 
     Returns:
         Mock API response string.
     """
-    # Check file contents for problematic patterns
-    all_content = " ".join(file_contents.values()).lower()
+    # Extract all content from FileInfo objects for pattern matching
+    all_content_parts = []
+    for file_info in file_info_dict.values():
+        if file_info.new_content:
+            all_content_parts.append(file_info.new_content)
+        if file_info.original_content:
+            all_content_parts.append(file_info.original_content)
+        if file_info.diff:
+            all_content_parts.append(file_info.diff)
+    all_content = " ".join(all_content_parts).lower()
 
     # Determine response based on content
     if any(
@@ -155,7 +165,7 @@ def get_mock_response_for_scenario(
     # Check for minor issues
     if "def func(" in all_content and "->" not in all_content:
         # Missing type hints - include file names
-        file_names = ", ".join([os.path.basename(f) for f in file_contents])
+        file_names = ", ".join([os.path.basename(f) for f in file_info_dict])
         return f"""---BEGIN STATUS---
 STATUS: PASS
 CRITICAL_ISSUES_COUNT: 0
@@ -187,9 +197,9 @@ CRITICAL_ISSUES_COUNT: 0
 
     # Check if context rules were provided (indicated by test context)
     if "test" in scenario_name.lower() or any(
-        "test" in path.lower() for path in file_contents
+        "test" in path.lower() for path in file_info_dict
     ):
-        file_names = ", ".join([os.path.basename(f) for f in file_contents])
+        file_names = ", ".join([os.path.basename(f) for f in file_info_dict])
         return f"""---BEGIN STATUS---
 STATUS: PASS
 CRITICAL_ISSUES_COUNT: 0
@@ -213,4 +223,4 @@ CRITICAL_ISSUES_COUNT: 0
 """
 
     # Default to pass - include file names
-    return _build_mock_response_pass(file_contents)
+    return _build_mock_response_pass(file_info_dict)
