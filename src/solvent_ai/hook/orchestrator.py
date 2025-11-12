@@ -5,11 +5,15 @@ from pathlib import Path
 
 from git import Repo
 
-from solvent.ai import GeminiClient
-from solvent.git import get_staged_file_info, get_staged_files
-from solvent.hook.evaluator import should_block_commit
-from solvent.models.hook import HookResult
-from solvent.rules import filter_ignored_files, load_context_rules, load_ignore_patterns
+from solvent_ai.ai import GeminiClient
+from solvent_ai.git import get_staged_file_info, get_staged_files
+from solvent_ai.hook.evaluator import should_block_commit
+from solvent_ai.models.hook import HookResult
+from solvent_ai.rules import (
+    filter_ignored_files,
+    load_context_rules,
+    load_ignore_patterns,
+)
 
 logger = logging.getLogger(__name__)
 

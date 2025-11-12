@@ -2,8 +2,8 @@
 
 import textwrap
 
-from solvent.models.file_info import FileInfo
-from solvent.rules.context import ContextRule, get_context_for_file
+from solvent_ai.models.file_info import FileInfo
+from solvent_ai.rules.context import ContextRule, get_context_for_file
 
 
 def build_pre_commit_review_prompt(  # noqa: PLR0912

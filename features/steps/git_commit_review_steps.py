@@ -8,7 +8,7 @@ from behave import given, then, when
 from git import Repo
 
 # Import the actual functionality we're testing
-from solvent.hook import run_pre_commit_review
+from solvent_ai.hook import run_pre_commit_review
 
 
 @given("I have a git repository")

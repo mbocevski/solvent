@@ -5,8 +5,8 @@ from pathlib import Path
 
 from git import Repo
 
-from solvent.config.settings import get_settings
-from solvent.models.file_info import FileInfo
+from solvent_ai.config.settings import get_settings
+from solvent_ai.models.file_info import FileInfo
 
 logger = logging.getLogger(__name__)
 

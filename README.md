@@ -27,16 +27,16 @@ improvement.
 
 ### From PyPI (Recommended)
 
-Once published, install Solvent from PyPI:
+Install Solvent from PyPI:
 
 ```bash
-pip install solvent
+pip install solvent-ai
 ```
 
 Or using `uv`:
 
 ```bash
-uv pip install solvent
+uv pip install solvent-ai
 ```
 
 ### From Source
@@ -247,8 +247,8 @@ If you're developing Solvent or want to use a local installation:
 
 ```bash
 # Install Solvent first
-pip install solvent
-# Or: uv add solvent
+pip install solvent-ai
+# Or: uv add solvent-ai
 ```
 
 Then use a local hook in `.pre-commit-config.yaml`:

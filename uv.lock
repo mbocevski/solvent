@@ -729,7 +729,7 @@ wheels = [
 ]
 
 [[package]]
-name = "solvent"
+name = "solvent-ai"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

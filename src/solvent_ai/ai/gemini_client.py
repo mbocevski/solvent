@@ -4,11 +4,11 @@ import logging
 
 from google.genai import Client
 
-from solvent.ai.context import build_pre_commit_review_prompt
-from solvent.ai.retry import retry_with_backoff
-from solvent.config import get_settings
-from solvent.models.file_info import FileInfo
-from solvent.rules.context import ContextRule
+from solvent_ai.ai.context import build_pre_commit_review_prompt
+from solvent_ai.ai.retry import retry_with_backoff
+from solvent_ai.config import get_settings
+from solvent_ai.models.file_info import FileInfo
+from solvent_ai.rules.context import ContextRule
 
 logger = logging.getLogger(__name__)
 

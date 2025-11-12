@@ -2,7 +2,7 @@
 
 import os
 
-from solvent.models.file_info import FileInfo
+from solvent_ai.models.file_info import FileInfo
 
 # Mock responses that match the expected format with status blocks
 

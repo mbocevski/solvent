@@ -4,8 +4,8 @@ import logging
 
 from behave import then, when
 
-from solvent.config import setup_logging
-from solvent.hook import run_pre_commit_review
+from solvent_ai.config import setup_logging
+from solvent_ai.hook import run_pre_commit_review
 
 # Reuse common steps from git_commit_review_steps
 # Only verbose-specific steps are defined here

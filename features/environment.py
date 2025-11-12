@@ -28,7 +28,7 @@ def before_feature(context, feature):
     if not is_integration:
         # Patch GeminiClient to use mocks instead of real API calls
         # Patch where it's imported in orchestrator
-        context.gemini_patcher = patch("solvent.hook.orchestrator.GeminiClient")
+        context.gemini_patcher = patch("solvent_ai.hook.orchestrator.GeminiClient")
         context.mock_gemini_client_class = context.gemini_patcher.start()
 
         def mock_review_staged_files(file_info_dict, context_rules=None):

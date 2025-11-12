@@ -1,5 +1,5 @@
 [project]
-name = "solvent"
+name = "solvent-ai"
 version = "0.1.0"
 description = "AI-powered pre-commit hook for code review using Google Gemini"
 readme = "README.md"
@@ -13,7 +13,7 @@ dependencies = [
     "pydantic-settings>=2.12.0",
 ]
 [project.scripts]
-solvent = "solvent.main:main"
+solvent = "solvent_ai.main:main"
 
 [dependency-groups]
 dev = [
@@ -28,7 +28,7 @@ requires = ["uv_build>=0.9.5,<0.10.0"]
 build-backend = "uv_build"
 
 [tool.uv_build]
-packages = ["src/solvent"]
+packages = ["src/solvent_ai"]
 
 [tool.ruff]
 line-length = 88
@@ -87,12 +87,12 @@ extend-ignore = [
 "features/environment.py" = [
     "ARG001",  # Unused function argument (context is used by behave hooks)
 ]
-"src/solvent/ai/retry.py" = [
+"src/solvent_ai/ai/retry.py" = [
     "PERF203", # try-except in loop is necessary for retry logic
 ]
 
 [tool.pyright]
-include = ["src/solvent", "features"]
+include = ["src/solvent_ai", "features"]
 # Note: reportCallIssue is disabled globally due to behave decorators (@given, @when, @then)
 # in features/steps/*.py which work at runtime but pyright doesn't recognize as callable.
 # This is a limitation of behave's type stubs, not our code.

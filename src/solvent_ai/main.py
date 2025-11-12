@@ -5,10 +5,10 @@ import logging
 import sys
 from importlib.metadata import PackageNotFoundError, version
 
-from solvent.config import setup_logging
-from solvent.config.settings import get_settings
-from solvent.hook import run_pre_commit_review
-from solvent.hook.evaluator import strip_status_block
+from solvent_ai.config import setup_logging
+from solvent_ai.config.settings import get_settings
+from solvent_ai.hook import run_pre_commit_review
+from solvent_ai.hook.evaluator import strip_status_block
 
 
 def get_version() -> str:

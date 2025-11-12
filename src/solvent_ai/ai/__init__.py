@@ -1,5 +1,5 @@
 """AI integration module for Gemini."""
 
-from solvent.ai.gemini_client import GeminiClient
+from solvent_ai.ai.gemini_client import GeminiClient
 
 __all__ = ["GeminiClient"]
