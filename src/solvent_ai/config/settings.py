@@ -13,10 +13,16 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # Gemini API configuration
-    gemini_api_key: str = Field(
-        ...,
-        description="Google Gemini API key",
+    # AI Provider selection
+    ai_provider: str = Field(
+        default="gemini",
+        description="AI provider to use (gemini, openai)",
+    )
+
+    # Gemini API configuration (required if ai_provider=gemini)
+    gemini_api_key: str | None = Field(
+        default=None,
+        description="Google Gemini API key (required if ai_provider=gemini)",
     )
     gemini_model: str = Field(
         default="gemini-2.5-flash",
@@ -27,6 +33,22 @@ class Settings(BaseSettings):
         ge=0.0,
         le=2.0,
         description="Temperature for Gemini API calls",
+    )
+
+    # OpenAI API configuration (required if ai_provider=openai)
+    openai_api_key: str | None = Field(
+        default=None,
+        description="OpenAI API key (required if ai_provider=openai)",
+    )
+    openai_model: str = Field(
+        default="gpt-4o-mini",
+        description="OpenAI model to use for reviews",
+    )
+    openai_temperature: float = Field(
+        default=0.7,
+        ge=0.0,
+        le=2.0,
+        description="Temperature for OpenAI API calls",
     )
 
     # Logging configuration

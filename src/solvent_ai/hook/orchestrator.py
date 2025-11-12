@@ -5,7 +5,7 @@ from pathlib import Path
 
 from git import Repo
 
-from solvent_ai.ai import GeminiClient
+from solvent_ai.ai.factory import create_ai_client
 from solvent_ai.git import get_staged_file_info, get_staged_files
 from solvent_ai.hook.evaluator import should_block_commit
 from solvent_ai.models.hook import HookResult
@@ -86,7 +86,7 @@ def run_pre_commit_review(repo_path: str | None = None) -> HookResult:
 
     # Review with AI
     try:
-        client = GeminiClient()
+        client = create_ai_client()
         feedback = client.review_staged_files(file_info_dict, context_rules)
     except Exception as e:
         error_str = str(e)
