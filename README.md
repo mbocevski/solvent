@@ -83,10 +83,11 @@ export SOLVENT_AI_PROVIDER="provider-name"  # Select your preferred AI provider
 
 **General Settings (apply to all providers):**
 
-| Setting                 | Description                                                     | Default         |
-| ----------------------- | --------------------------------------------------------------- | --------------- |
-| `SOLVENT_LOG_LEVEL`     | Logging level (`DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`) | `INFO`          |
-| `SOLVENT_MAX_FILE_SIZE` | Maximum file size in bytes to review                            | `1048576` (1MB) |
+| Setting                 | Description                                                     | Default                       |
+| ----------------------- | --------------------------------------------------------------- | ----------------------------- |
+| `SOLVENT_MAX_TOKENS`    | Maximum output tokens for AI responses                          | Model limit (Anthropic: 4096) |
+| `SOLVENT_LOG_LEVEL`     | Logging level (`DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`) | `INFO`                        |
+| `SOLVENT_MAX_FILE_SIZE` | Maximum file size in bytes to review                            | `1048576` (1MB)               |
 
 **Example Configuration:**
 
@@ -102,6 +103,7 @@ export SOLVENT_GEMINI_MODEL="gemini-2.5-flash"
 export SOLVENT_GEMINI_TEMPERATURE="0.7"
 
 # Optional: General settings
+export SOLVENT_MAX_TOKENS="4096"  # Limit response length for all providers
 export SOLVENT_LOG_LEVEL="INFO"
 export SOLVENT_MAX_FILE_SIZE="1048576"
 ```
