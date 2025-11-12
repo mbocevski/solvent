@@ -75,10 +75,11 @@ export SOLVENT_AI_PROVIDER="provider-name"  # Select your preferred AI provider
 
 **Configuration Options by Provider:**
 
-| Provider   | Required Settings        | Optional Settings                                      | Defaults                                        |
-| ---------- | ------------------------ | ------------------------------------------------------ | ----------------------------------------------- |
-| **gemini** | `SOLVENT_GEMINI_API_KEY` | `SOLVENT_GEMINI_MODEL`<br>`SOLVENT_GEMINI_TEMPERATURE` | Model: `gemini-2.5-flash`<br>Temperature: `0.7` |
-| **openai** | `SOLVENT_OPENAI_API_KEY` | `SOLVENT_OPENAI_MODEL`<br>`SOLVENT_OPENAI_TEMPERATURE` | Model: `gpt-4o-mini`<br>Temperature: `0.7`      |
+| Provider      | Required Settings           | Optional Settings                                            | Defaults                                                         |
+| ------------- | --------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------- |
+| **gemini**    | `SOLVENT_GEMINI_API_KEY`    | `SOLVENT_GEMINI_MODEL`<br>`SOLVENT_GEMINI_TEMPERATURE`       | Model: `gemini-2.5-flash`<br>Temperature: `0.7`                  |
+| **openai**    | `SOLVENT_OPENAI_API_KEY`    | `SOLVENT_OPENAI_MODEL`<br>`SOLVENT_OPENAI_TEMPERATURE`       | Model: `gpt-4o-mini`<br>Temperature: `0.7`                       |
+| **anthropic** | `SOLVENT_ANTHROPIC_API_KEY` | `SOLVENT_ANTHROPIC_MODEL`<br>`SOLVENT_ANTHROPIC_TEMPERATURE` | Model: `claude-haiku-4-5`<br>Temperature: `0.7` (range: 0.0-1.0) |
 
 **General Settings (apply to all providers):**
 
@@ -107,7 +108,8 @@ export SOLVENT_MAX_FILE_SIZE="1048576"
 
 > **Note**:
 >
-> - Temperature range: `0.0` to `2.0` for all providers
+> - Temperature range: `0.0` to `2.0` for Gemini and OpenAI, `0.0` to `1.0` for
+>   Anthropic
 > - Each provider requires its own API key
 > - Refer to your provider's documentation for available model options
 
