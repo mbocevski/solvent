@@ -215,7 +215,7 @@ context = This is a configuration file. Check for hardcoded secrets, credentials
 After setting your API key and provider:
 
 ```bash
-# Review staged files (uses provider from SOLVENT_AI_PROVIDER or defaults to gemini)
+# Review staged files (uses provider from SOLVENT_AI_PROVIDER or defaults to openai)
 uv run solvent
 
 # Or if installed globally
