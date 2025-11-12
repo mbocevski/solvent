@@ -8,6 +8,36 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-11-12
+
+### Added
+
+- **Multi-Provider AI Support**: Added support for multiple AI providers,
+  allowing users to choose between Gemini, OpenAI, and Anthropic
+- **OpenAI Integration**: Full integration with OpenAI API for code reviews
+  using GPT models
+- **Anthropic Integration**: Full integration with Anthropic API for code
+  reviews using Claude models
+- **Configurable Max Tokens**: Added general `max_tokens` setting that applies
+  to all AI providers for controlling response length
+- **Provider-Specific End-to-End Tests**: Added separate e2e test suites for
+  each AI provider (Gemini, OpenAI, Anthropic)
+
+### Changed
+
+- **Default AI Provider**: Changed default provider from Gemini to OpenAI
+- **Architecture Refactoring**: Refactored AI client architecture to use
+  abstract base class and factory pattern for better extensibility
+- **Test Organization**: Reorganized features directory structure for better
+  maintainability, grouping step definitions by domain
+- **Settings Management**: Improved settings singleton management with reset
+  functionality for better test isolation
+
+### Fixed
+
+- Fixed settings singleton caching issue in tests that prevented proper
+  environment variable reloading between test scenarios
+
 ## [0.1.1] - 2025-11-12
 
 ### Changed
