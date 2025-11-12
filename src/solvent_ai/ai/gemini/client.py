@@ -22,6 +22,7 @@ class GeminiClient(AIClient):
         api_key: str | None = None,
         model: str | None = None,
         temperature: float | None = None,
+        max_output_tokens: int | None = None,
     ) -> None:
         """Initialize Gemini client.
 
@@ -30,6 +31,8 @@ class GeminiClient(AIClient):
             model: Model name. If None, uses model from settings.
             temperature: Temperature for generation. If None, uses temperature from
                 settings.
+            max_output_tokens: Maximum output tokens. If None, uses value from
+                general max_tokens setting, or model default if not set.
 
         Raises:
             ValueError: If API key is not provided.
@@ -39,6 +42,9 @@ class GeminiClient(AIClient):
         self.model_name = model or settings.gemini_model
         self.temperature = (
             temperature if temperature is not None else settings.gemini_temperature
+        )
+        self.max_output_tokens = (
+            max_output_tokens if max_output_tokens is not None else settings.max_tokens
         )
 
         if not self.api_key:
@@ -51,7 +57,8 @@ class GeminiClient(AIClient):
 
         logger.debug(
             f"Initialized Gemini client with model: {self.model_name}, "
-            f"temperature: {self.temperature}"
+            f"temperature: {self.temperature}, "
+            f"max_output_tokens: {self.max_output_tokens}"
         )
 
     def review_staged_files(
@@ -105,10 +112,13 @@ class GeminiClient(AIClient):
                 Exception: For other API errors.
             """
             logger.debug("Sending staged files review request to Gemini")
+            config: dict[str, float | int] = {"temperature": self.temperature}
+            if self.max_output_tokens is not None:
+                config["maxOutputTokens"] = self.max_output_tokens
             response = self.client.models.generate_content(
                 model=self.model_name,
                 contents=prompt,
-                config={"temperature": self.temperature},
+                config=config,  # type: ignore[arg-type]
             )
             feedback = _validate_feedback(response.text)
             logger.debug("Received feedback from Gemini")

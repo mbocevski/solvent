@@ -6,6 +6,7 @@ import shutil
 from unittest.mock import MagicMock, patch
 
 from features.mocks import get_mock_response_for_scenario
+from solvent_ai.config import reset_settings
 
 
 def before_all(context):
@@ -66,6 +67,9 @@ def after_feature(context, feature):
 
 def before_scenario(context, scenario):
     """Run before each scenario."""
+    # Reset settings singleton to pick up new environment variables
+    reset_settings()
+
     # Set required environment variables for tests
     # Only set dummy API keys if they're not already set
     # (for integration/e2e tests that need real keys from environment)

@@ -67,6 +67,16 @@ class Settings(BaseSettings):
         description="Temperature for Anthropic API calls (range: 0.0-1.0)",
     )
 
+    # General AI configuration (applies to all providers)
+    max_tokens: int | None = Field(
+        default=None,
+        ge=1,
+        description=(
+            "Maximum output tokens for AI responses "
+            "(default: model limit, Anthropic: 4096 if not set)"
+        ),
+    )
+
     # Logging configuration
     log_level: str = Field(
         default="INFO",
@@ -93,3 +103,13 @@ def get_settings() -> Settings:
     if _settings is None:
         _settings = Settings()  # pyright: ignore[reportCallIssue]
     return _settings
+
+
+def reset_settings() -> None:
+    """Reset the settings singleton (useful for testing).
+
+    This clears the cached settings instance, forcing a new one to be created
+    on the next call to get_settings(), which will reload from environment.
+    """
+    global _settings  # noqa: PLW0603
+    _settings = None

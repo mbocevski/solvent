@@ -22,6 +22,7 @@ class OpenAIClient(AIClient):
         api_key: str | None = None,
         model: str | None = None,
         temperature: float | None = None,
+        max_tokens: int | None = None,
     ) -> None:
         """Initialize OpenAI client.
 
@@ -30,6 +31,8 @@ class OpenAIClient(AIClient):
             model: Model name. If None, uses model from settings.
             temperature: Temperature for generation. If None, uses temperature from
                 settings.
+            max_tokens: Maximum tokens. If None, uses value from general max_tokens
+                setting, or model default if not set.
 
         Raises:
             ValueError: If API key is not provided.
@@ -40,6 +43,7 @@ class OpenAIClient(AIClient):
         self.temperature = (
             temperature if temperature is not None else settings.openai_temperature
         )
+        self.max_tokens = max_tokens if max_tokens is not None else settings.max_tokens
 
         if not self.api_key:
             raise ValueError(
@@ -51,7 +55,7 @@ class OpenAIClient(AIClient):
 
         logger.debug(
             f"Initialized OpenAI client with model: {self.model_name}, "
-            f"temperature: {self.temperature}"
+            f"temperature: {self.temperature}, max_tokens: {self.max_tokens}"
         )
 
     def review_staged_files(
@@ -105,13 +109,16 @@ class OpenAIClient(AIClient):
                 Exception: For other API errors.
             """
             logger.debug("Sending staged files review request to OpenAI")
-            response = self.client.chat.completions.create(
-                model=self.model_name,
-                messages=[
+            request_params = {
+                "model": self.model_name,
+                "messages": [
                     {"role": "user", "content": prompt},
                 ],
-                temperature=self.temperature,
-            )
+                "temperature": self.temperature,
+            }
+            if self.max_tokens is not None:
+                request_params["max_tokens"] = self.max_tokens
+            response = self.client.chat.completions.create(**request_params)
             feedback = _validate_feedback(
                 response.choices[0].message.content if response.choices else None
             )

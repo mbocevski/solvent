@@ -23,6 +23,7 @@ class AnthropicClient(AIClient):
         api_key: str | None = None,
         model: str | None = None,
         temperature: float | None = None,
+        max_tokens: int | None = None,
     ) -> None:
         """Initialize Anthropic client.
 
@@ -31,6 +32,8 @@ class AnthropicClient(AIClient):
             model: Model name. If None, uses model from settings.
             temperature: Temperature for generation. If None, uses temperature from
                 settings.
+            max_tokens: Maximum tokens. If None, uses value from general max_tokens
+                setting, or 4096 as default (Anthropic requires max_tokens).
 
         Raises:
             ValueError: If API key is not provided.
@@ -40,6 +43,12 @@ class AnthropicClient(AIClient):
         self.model_name = model or settings.anthropic_model
         self.temperature = (
             temperature if temperature is not None else settings.anthropic_temperature
+        )
+        # Anthropic requires max_tokens, so use 4096 as default if not set
+        self.max_tokens = (
+            max_tokens
+            if max_tokens is not None
+            else (settings.max_tokens if settings.max_tokens is not None else 4096)
         )
 
         if not self.api_key:
@@ -52,7 +61,7 @@ class AnthropicClient(AIClient):
 
         logger.debug(
             f"Initialized Anthropic client with model: {self.model_name}, "
-            f"temperature: {self.temperature}"
+            f"temperature: {self.temperature}, max_tokens: {self.max_tokens}"
         )
 
     def review_staged_files(
@@ -108,7 +117,7 @@ class AnthropicClient(AIClient):
             logger.debug("Sending staged files review request to Anthropic")
             response = self.client.messages.create(
                 model=self.model_name,
-                max_tokens=4096,
+                max_tokens=self.max_tokens,
                 temperature=self.temperature,
                 messages=[
                     {"role": "user", "content": prompt},
