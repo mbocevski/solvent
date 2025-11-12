@@ -8,6 +8,20 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.1.1] - 2025-11-12
+
+### Changed
+
+- **Package Rename**: Renamed internal package from `solvent` to `solvent_ai` to
+  match PyPI package name `solvent-ai` and avoid naming conflicts
+- **PyPI Package Name**: Changed PyPI package name to `solvent-ai` to ensure
+  uniqueness on PyPI
+
+### Added
+
+- **PyPI Publishing Workflow**: Added GitHub Actions workflow for automated
+  publishing to PyPI using Trusted Publishers (OIDC)
+
 ## [0.1.0] - 2025-11-11
 
 Initial release of Solvent.

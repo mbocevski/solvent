@@ -223,7 +223,7 @@ framework. Add the following to your `.pre-commit-config.yaml`:
 ```yaml
 repos:
   - repo: https://github.com/mbocevski/solvent
-    rev: v0.1.0 # Use a specific version tag
+    rev: v0.1.1 # Use a specific version tag
     hooks:
       - id: solvent
         verbose: true # Always show output to see the AI response when status Passed
