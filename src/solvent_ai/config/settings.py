@@ -15,7 +15,7 @@ class Settings(BaseSettings):
 
     # AI Provider selection
     ai_provider: str = Field(
-        default="gemini",
+        default="openai",
         description="AI provider to use (gemini, openai, anthropic)",
     )
 
