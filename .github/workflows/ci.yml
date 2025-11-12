@@ -49,4 +49,6 @@ jobs:
       - name: Run behave tests
         env:
           SOLVENT_GEMINI_API_KEY: ${{ secrets.SOLVENT_GEMINI_API_KEY }}
+          SOLVENT_OPENAI_API_KEY: ${{ secrets.SOLVENT_OPENAI_API_KEY }}
+          SOLVENT_ANTHROPIC_API_KEY: ${{ secrets.SOLVENT_ANTHROPIC_API_KEY }}
         run: uv run behave
