@@ -74,10 +74,13 @@ def before_scenario(context, scenario):
         os.environ["SOLVENT_AI_PROVIDER"] = "gemini"
     if "SOLVENT_GEMINI_API_KEY" not in os.environ:
         # Use a dummy API key since we're mocking the API calls
-        os.environ["SOLVENT_GEMINI_API_KEY"] = "test-api-key-for-mocked-tests"
+        os.environ["SOLVENT_GEMINI_API_KEY"] = "test-gemini-key-for-mocked-tests"
     if "SOLVENT_OPENAI_API_KEY" not in os.environ:
         # Use a dummy API key since we're mocking the API calls
-        os.environ["SOLVENT_OPENAI_API_KEY"] = "test-api-key-for-mocked-tests"
+        os.environ["SOLVENT_OPENAI_API_KEY"] = "test-openai-key-for-mocked-tests"
+    if "SOLVENT_ANTHROPIC_API_KEY" not in os.environ:
+        # Use a dummy API key since we're mocking the API calls
+        os.environ["SOLVENT_ANTHROPIC_API_KEY"] = "test-anthropic-key-for-mocked-tests"
 
     # Initialize scenario-specific context
     context.git_repo = None

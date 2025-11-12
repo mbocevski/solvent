@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     # AI Provider selection
     ai_provider: str = Field(
         default="gemini",
-        description="AI provider to use (gemini, openai)",
+        description="AI provider to use (gemini, openai, anthropic)",
     )
 
     # Gemini API configuration (required if ai_provider=gemini)
@@ -49,6 +49,22 @@ class Settings(BaseSettings):
         ge=0.0,
         le=2.0,
         description="Temperature for OpenAI API calls",
+    )
+
+    # Anthropic API configuration (required if ai_provider=anthropic)
+    anthropic_api_key: str | None = Field(
+        default=None,
+        description="Anthropic API key (required if ai_provider=anthropic)",
+    )
+    anthropic_model: str = Field(
+        default="claude-haiku-4-5",
+        description="Anthropic model to use for reviews",
+    )
+    anthropic_temperature: float = Field(
+        default=0.7,
+        ge=0.0,
+        le=1.0,
+        description="Temperature for Anthropic API calls (range: 0.0-1.0)",
     )
 
     # Logging configuration

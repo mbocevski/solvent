@@ -39,6 +39,16 @@ def create_ai_client() -> AIClient:
                 "Set SOLVENT_OPENAI_API_KEY environment variable."
             )
         return OpenAIClient()
+    if provider == "anthropic":
+        from solvent_ai.ai.anthropic import AnthropicClient  # noqa: PLC0415
+
+        if not settings.anthropic_api_key:
+            raise ValueError(
+                "Anthropic API key is required when ai_provider=anthropic. "
+                "Set SOLVENT_ANTHROPIC_API_KEY environment variable."
+            )
+        return AnthropicClient()
     raise ValueError(
-        f"Unsupported AI provider: {provider}. Supported providers: gemini, openai"
+        f"Unsupported AI provider: {provider}. "
+        f"Supported providers: gemini, openai, anthropic"
     )
