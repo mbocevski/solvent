@@ -5,7 +5,7 @@ import os
 import shutil
 from unittest.mock import MagicMock, patch
 
-from features.mocks import get_mock_response_for_scenario
+from features.support.mocks import get_mock_response_for_scenario
 from solvent_ai.config import reset_settings
 
 

@@ -456,47 +456,23 @@ context = Test code - focus on quality and coverage
 
 ```
 solvent/
-├── src/solvent_ai/
-│   ├── __init__.py              # Main package exports
-│   ├── main.py                  # CLI entry point
-│   ├── hook/
-│   │   ├── __init__.py          # Hook module exports
-│   │   ├── orchestrator.py      # Pre-commit hook orchestration
-│   │   └── evaluator.py         # Pass/fail evaluation logic
-│   ├── ai/
-│   │   ├── __init__.py          # AI module exports
-│   │   ├── base.py              # Abstract base class for AI clients
-│   │   ├── factory.py           # Factory for creating AI clients
-│   │   ├── context.py           # AI prompt context and templates
-│   │   ├── retry.py             # Retry logic for API calls
-│   │   ├── gemini/              # Gemini provider implementation
-│   │   │   ├── __init__.py
-│   │   │   └── client.py
-│   │   └── openai/              # OpenAI provider implementation
-│   │       ├── __init__.py
-│   │       └── client.py
-│   ├── config/
-│   │   ├── __init__.py          # Config module exports
-│   │   ├── logging_config.py    # Logging setup and configuration
-│   │   └── settings.py          # Application settings (pydantic)
-│   ├── git/
-│   │   ├── __init__.py          # Git module exports
-│   │   └── repository.py        # Git operations (staged files, etc.)
-│   ├── rules/
-│   │   ├── __init__.py          # Rules module exports
-│   │   ├── ignore.py            # .solventignore pattern handling
-│   │   └── context.py           # .solventrules context rule handling
-│   └── models/
-│       ├── __init__.py          # Models module exports
-│       └── hook.py              # HookResult data model
-├── features/                    # BDD feature files (behave)
-│   ├── environment.py           # Behave environment setup/teardown
-│   ├── git_commit_review.feature
-│   ├── config_rules.feature
-│   └── steps/
-│       ├── git_commit_review_steps.py
-│       └── config_rules_steps.py
-└── pyproject.toml               # Project configuration and dependencies
+├── src/solvent_ai/          # Main package
+│   ├── main.py              # CLI entry point
+│   ├── hook/                # Pre-commit hook logic
+│   ├── ai/                  # AI provider integrations (Gemini, OpenAI, Anthropic)
+│   ├── config/              # Configuration and settings
+│   ├── git/                 # Git operations
+│   ├── rules/               # .solventignore and .solventrules handling
+│   └── models/              # Data models
+├── features/                # BDD tests (behave)
+│   ├── core/                # Core functionality tests
+│   ├── configuration/       # Configuration tests
+│   ├── file_handling/       # File handling tests
+│   ├── cli/                 # CLI tests
+│   ├── integration/         # E2E integration tests
+│   ├── steps/               # Step definitions
+│   └── support/             # Test support files
+└── pyproject.toml           # Project configuration
 ```
 
 ## Development
@@ -524,7 +500,7 @@ uv run behave --format json
 uv run behave --format json.pretty
 
 # Run specific feature
-uv run behave features/config_rules.feature
+uv run behave features/configuration/config_rules.feature
 ```
 
 ### Code Quality
@@ -533,19 +509,19 @@ We use `ruff` for linting and formatting, and `pyright` for type checking:
 
 ```bash
 # Run linter
-uv run ruff check src/solvent
+uv run ruff check src/solvent_ai
 
 # Auto-fix linting issues
-uv run ruff check --fix src/solvent
+uv run ruff check --fix src/solvent_ai
 
 # Format code
 uv run ruff format
 
 # Type checking
-uv run pyright src/solvent
+uv run pyright src/solvent_ai
 
 # Run all quality checks
-uv run ruff check src/solvent && uv run ruff format && uv run pyright src/solvent
+uv run ruff check src/solvent_ai && uv run ruff format && uv run pyright src/solvent_ai
 ```
 
 ### Development Workflow
