@@ -1,9 +1,10 @@
-"""Google Gemini API client for code review."""
+"""OpenAI API client for code review."""
 
 import logging
 
-from google.genai import Client
+from openai import OpenAI
 
+from solvent_ai.ai.base import AIClient
 from solvent_ai.ai.context import build_pre_commit_review_prompt
 from solvent_ai.ai.retry import retry_with_backoff
 from solvent_ai.config import get_settings
@@ -13,8 +14,8 @@ from solvent_ai.rules.context import ContextRule
 logger = logging.getLogger(__name__)
 
 
-class GeminiClient:
-    """Client for interacting with Google Gemini API."""
+class OpenAIClient(AIClient):
+    """Client for interacting with OpenAI API."""
 
     def __init__(
         self,
@@ -22,25 +23,34 @@ class GeminiClient:
         model: str | None = None,
         temperature: float | None = None,
     ) -> None:
-        """Initialize Gemini client.
+        """Initialize OpenAI client.
 
         Args:
-            api_key: Gemini API key. If None, uses key from settings.
+            api_key: OpenAI API key. If None, uses key from settings.
             model: Model name. If None, uses model from settings.
             temperature: Temperature for generation. If None, uses temperature from
                 settings.
+
+        Raises:
+            ValueError: If API key is not provided.
         """
         settings = get_settings()
-        self.api_key = api_key or settings.gemini_api_key
-        self.model_name = model or settings.gemini_model
+        self.api_key = api_key or settings.openai_api_key
+        self.model_name = model or settings.openai_model
         self.temperature = (
-            temperature if temperature is not None else settings.gemini_temperature
+            temperature if temperature is not None else settings.openai_temperature
         )
 
-        self.client = Client(api_key=self.api_key)
+        if not self.api_key:
+            raise ValueError(
+                "OpenAI API key is required. "
+                "Set SOLVENT_OPENAI_API_KEY environment variable."
+            )
+
+        self.client = OpenAI(api_key=self.api_key)
 
         logger.debug(
-            f"Initialized Gemini client with model: {self.model_name}, "
+            f"Initialized OpenAI client with model: {self.model_name}, "
             f"temperature: {self.temperature}"
         )
 
@@ -49,7 +59,7 @@ class GeminiClient:
         file_info_dict: dict[str, FileInfo],
         context_rules: list[ContextRule] | None = None,
     ) -> str:
-        """Review staged files using Gemini.
+        """Review staged files using OpenAI.
 
         Args:
             file_info_dict: Dictionary mapping file paths to FileInfo objects
@@ -79,7 +89,7 @@ class GeminiClient:
                 ValueError: If feedback is None.
             """
             if fb is None:
-                error_msg = "Gemini API returned None feedback"
+                error_msg = "OpenAI API returned None feedback"
                 logger.error(error_msg)
                 raise ValueError(error_msg)
             return fb
@@ -94,24 +104,28 @@ class GeminiClient:
                 ValueError: If the API returns None feedback.
                 Exception: For other API errors.
             """
-            logger.debug("Sending staged files review request to Gemini")
-            response = self.client.models.generate_content(
+            logger.debug("Sending staged files review request to OpenAI")
+            response = self.client.chat.completions.create(
                 model=self.model_name,
-                contents=prompt,
-                config={"temperature": self.temperature},
+                messages=[
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=self.temperature,
             )
-            feedback = _validate_feedback(response.text)
-            logger.debug("Received feedback from Gemini")
+            feedback = _validate_feedback(
+                response.choices[0].message.content if response.choices else None
+            )
+            logger.debug("Received feedback from OpenAI")
             return feedback
 
         try:
             # Retry with exponential backoff for transient errors
             return retry_with_backoff(
-                _call_api, operation_name="Gemini API review request"
+                _call_api, operation_name="OpenAI API review request"
             )
         except ValueError:
             # Don't retry validation errors
             raise
         except Exception:
-            logger.exception("Error calling Gemini API after retries")
+            logger.exception("Error calling OpenAI API after retries")
             raise

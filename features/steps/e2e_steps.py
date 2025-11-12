@@ -9,6 +9,12 @@ from behave import given
 # Only define e2e-specific steps here
 
 
+@given('the AI provider is set to "{provider}"')
+def step_given_ai_provider(context, provider):
+    """Set the AI provider environment variable."""
+    os.environ["SOLVENT_AI_PROVIDER"] = provider
+
+
 @given("I have staged files with good code for e2e")
 def step_given_staged_good_code_e2e(context):
     """Create and stage files with good code for e2e testing."""

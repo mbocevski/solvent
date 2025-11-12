@@ -1,15 +1,16 @@
 # Solvent
 
-AI-powered pre-commit hook for automated code review using Google Gemini.
-Solvent automatically reviews your staged files before committing, blocking
-commits with critical issues while providing actionable suggestions for
-improvement.
+AI-powered pre-commit hook for automated code review. Solvent automatically
+reviews your staged files before committing, blocking commits with critical
+issues while providing actionable suggestions for improvement. Supports multiple
+AI providers - choose the one that works best for you.
 
 ## Features
 
 - **Automated Pre-commit Reviews**: Seamlessly integrates with git pre-commit
   hooks
-- **AI-Powered Analysis**: Uses Google Gemini for intelligent code review
+- **AI-Powered Analysis**: Supports multiple AI providers - select your
+  preferred provider for intelligent code review
 - **Smart Blocking**: Blocks commits with critical issues (security
   vulnerabilities, dangerous operations, critical bugs)
 - **Actionable Feedback**: Provides suggestions for non-critical improvements
@@ -66,23 +67,49 @@ uv pip install -e .
 Solvent uses environment variables for configuration. All settings use the
 `SOLVENT_` prefix and are case-insensitive.
 
-**Required:**
+**AI Provider Selection:**
 
 ```bash
+export SOLVENT_AI_PROVIDER="provider-name"  # Select your preferred AI provider
+```
+
+**Configuration Options by Provider:**
+
+| Provider   | Required Settings        | Optional Settings                                      | Defaults                                        |
+| ---------- | ------------------------ | ------------------------------------------------------ | ----------------------------------------------- |
+| **gemini** | `SOLVENT_GEMINI_API_KEY` | `SOLVENT_GEMINI_MODEL`<br>`SOLVENT_GEMINI_TEMPERATURE` | Model: `gemini-2.5-flash`<br>Temperature: `0.7` |
+| **openai** | `SOLVENT_OPENAI_API_KEY` | `SOLVENT_OPENAI_MODEL`<br>`SOLVENT_OPENAI_TEMPERATURE` | Model: `gpt-4o-mini`<br>Temperature: `0.7`      |
+
+**General Settings (apply to all providers):**
+
+| Setting                 | Description                                                     | Default         |
+| ----------------------- | --------------------------------------------------------------- | --------------- |
+| `SOLVENT_LOG_LEVEL`     | Logging level (`DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`) | `INFO`          |
+| `SOLVENT_MAX_FILE_SIZE` | Maximum file size in bytes to review                            | `1048576` (1MB) |
+
+**Example Configuration:**
+
+```bash
+# Select provider
+export SOLVENT_AI_PROVIDER="gemini"
+
+# Required: Provider API key
 export SOLVENT_GEMINI_API_KEY="your-api-key-here"
+
+# Optional: Provider-specific settings
+export SOLVENT_GEMINI_MODEL="gemini-2.5-flash"
+export SOLVENT_GEMINI_TEMPERATURE="0.7"
+
+# Optional: General settings
+export SOLVENT_LOG_LEVEL="INFO"
+export SOLVENT_MAX_FILE_SIZE="1048576"
 ```
 
-**Optional:**
-
-```bash
-export SOLVENT_GEMINI_MODEL="gemini-2.5-flash"  # Default: gemini-2.5-flash
-export SOLVENT_GEMINI_TEMPERATURE="0.7"         # Default: 0.7 (range: 0.0-2.0)
-export SOLVENT_LOG_LEVEL="INFO"                 # Default: INFO
-export SOLVENT_MAX_FILE_SIZE="1048576"          # Default: 1MB (in bytes)
-```
-
-> **Note**: Get your Gemini API key from
-> [Google AI Studio](https://makersuite.google.com/app/apikey).
+> **Note**:
+>
+> - Temperature range: `0.0` to `2.0` for all providers
+> - Each provider requires its own API key
+> - Refer to your provider's documentation for available model options
 
 ### Ignore Patterns (`.solventignore`)
 
@@ -181,14 +208,23 @@ context = This is a configuration file. Check for hardcoded secrets, credentials
 
 ### Command Line
 
-After setting your `SOLVENT_GEMINI_API_KEY` environment variable:
+After setting your API key and provider:
 
 ```bash
-# Review staged files
+# Review staged files (uses provider from SOLVENT_AI_PROVIDER or defaults to gemini)
 uv run solvent
 
 # Or if installed globally
 solvent
+```
+
+**Example:**
+
+```bash
+# Set your provider and corresponding API key
+export SOLVENT_AI_PROVIDER="your-provider"
+export SOLVENT_YOUR_PROVIDER_API_KEY="your-api-key"
+uv run solvent
 ```
 
 The command will:
@@ -265,9 +301,10 @@ repos:
         always_run: true
 ```
 
-> **Important**: Make sure to set the `SOLVENT_GEMINI_API_KEY` environment
-> variable before running pre-commit hooks. You can set it in your shell profile
-> or use a tool like `direnv` for project-specific environment variables.
+> **Important**: Make sure to set the appropriate API key environment variable
+> for your selected provider before running pre-commit hooks. You can set it in
+> your shell profile or use a tool like `direnv` for project-specific
+> environment variables.
 
 ## How It Works
 
@@ -284,8 +321,8 @@ Solvent follows a streamlined workflow to review your code:
 5. **Reads File Contents**: Reads the contents of non-ignored, size-appropriate
    staged files (skips binary files, files with encoding errors, and oversized
    files)
-6. **AI Review**: Sends files to Google Gemini for review, including
-   file-specific context where applicable
+6. **AI Review**: Sends files to the configured AI provider for review,
+   including file-specific context where applicable
 7. **Determines Pass/Fail**: Analyzes AI feedback for critical issues using:
    - Machine-readable status block (preferred)
    - Keyword-based fallback detection
@@ -324,8 +361,9 @@ time without blocking your workflow.
 ### Example 1: Basic Usage
 
 ```bash
-# Set your API key
-export SOLVENT_GEMINI_API_KEY="your-api-key"
+# Set your provider and API key
+export SOLVENT_AI_PROVIDER="your-provider"
+export SOLVENT_YOUR_PROVIDER_API_KEY="your-api-key"
 
 # Stage some files
 git add src/app.py tests/test_app.py
@@ -414,7 +452,7 @@ context = Test code - focus on quality and coverage
 
 ```
 solvent/
-├── src/solvent/
+├── src/solvent_ai/
 │   ├── __init__.py              # Main package exports
 │   ├── main.py                  # CLI entry point
 │   ├── hook/
@@ -423,8 +461,16 @@ solvent/
 │   │   └── evaluator.py         # Pass/fail evaluation logic
 │   ├── ai/
 │   │   ├── __init__.py          # AI module exports
-│   │   ├── gemini_client.py     # Google Gemini API integration
-│   │   └── context.py           # AI prompt context and templates
+│   │   ├── base.py              # Abstract base class for AI clients
+│   │   ├── factory.py           # Factory for creating AI clients
+│   │   ├── context.py           # AI prompt context and templates
+│   │   ├── retry.py             # Retry logic for API calls
+│   │   ├── gemini/              # Gemini provider implementation
+│   │   │   ├── __init__.py
+│   │   │   └── client.py
+│   │   └── openai/              # OpenAI provider implementation
+│   │       ├── __init__.py
+│   │       └── client.py
 │   ├── config/
 │   │   ├── __init__.py          # Config module exports
 │   │   ├── logging_config.py    # Logging setup and configuration
@@ -455,7 +501,7 @@ solvent/
 
 - Python >= 3.10
 - [uv](https://github.com/astral-sh/uv) for dependency management
-- Google Gemini API key (for running tests)
+- AI provider API key (Gemini or OpenAI) for running tests
 
 ### Running Tests
 
@@ -511,11 +557,10 @@ uv run ruff check src/solvent && uv run ruff format && uv run pyright src/solven
 ## Requirements
 
 - **Python**: >= 3.10
-- **Google Gemini API Key**: Required for AI reviews
-  ([Get one here](https://makersuite.google.com/app/apikey))
+- **AI Provider API Key**: Required for AI reviews (varies by provider)
 - **Git Repository**: Solvent operates on git repositories
 - **Dependencies**: Automatically installed via `uv sync`:
-  - `google-genai`: Google Gemini API client
+  - Provider-specific API clients (installed as needed)
   - `GitPython`: Git repository operations
   - `pydantic` / `pydantic-settings`: Configuration management
   - `pathspec`: Pattern matching for ignore/rules files
@@ -526,23 +571,23 @@ uv run ruff check src/solvent && uv run ruff format && uv run pyright src/solven
 
 **Error: "AI review authentication failed" or "API key not valid"**
 
-- Ensure `SOLVENT_GEMINI_API_KEY` is set in your environment
+- Ensure the appropriate API key is set in your environment for your selected
+  provider
 - Verify the API key is correct and not expired
-- Check that the API key has the necessary permissions for the Gemini API
-- Get a new API key from
-  [Google AI Studio](https://makersuite.google.com/app/apikey)
+- Check that the API key has the necessary permissions
+- Refer to your provider's documentation for obtaining a new API key
 
 **Error: "AI review permission denied"**
 
 - Your API key may not have the required permissions
-- Check your Google Cloud project settings
-- Ensure the Gemini API is enabled in your project
+- Check your provider's account settings and ensure the API is enabled
+- Verify API key permissions match the required access level
 
 ### Rate Limiting
 
 **Error: "AI review service rate limit exceeded"**
 
-- The Gemini API has rate limits based on your usage tier
+- AI provider APIs have rate limits based on your usage tier
 - Wait a few moments and try again
 - Consider upgrading your API quota if you frequently hit limits
 - The hook automatically retries with exponential backoff (up to 3 attempts)
@@ -551,11 +596,10 @@ uv run ruff check src/solvent && uv run ruff format && uv run pyright src/solven
 
 **Error: "AI review service is temporarily unavailable"**
 
-- The Gemini API service may be experiencing downtime
+- The AI provider service may be experiencing downtime
 - The hook automatically retries transient errors (503, 502, 504)
 - Wait a few moments and try again
-- Check [Google Cloud Status](https://status.cloud.google.com/) for service
-  issues
+- Check your provider's service status page for current status
 
 ### No Files to Review
 
@@ -593,7 +637,10 @@ uv run ruff check src/solvent && uv run ruff format && uv run pyright src/solven
 - Environment variables must use the `SOLVENT_` prefix
 - Variable names are case-insensitive
 - Restart your terminal/shell after setting environment variables
-- Use `echo $SOLVENT_GEMINI_API_KEY` to verify the variable is set
+- Verify the variable is set:
+  - For provider: `echo $SOLVENT_AI_PROVIDER`
+  - For API key: `echo $SOLVENT_YOUR_PROVIDER_API_KEY` (replace with your
+    provider's key variable)
 
 **Log level not changing**
 
